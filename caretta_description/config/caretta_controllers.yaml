@@ -20,7 +20,7 @@ diff_drive_controller:
 
     odom_frame_id: odom
     base_frame_id: caretta_base_footprint
-    publish_rate: 50.0
+    publish_rate: 100.0
     enable_odom_tf: true
     open_loop: false
     pose_covariance_diagonal: [0.001, 0.001, 1000000.0, 1000000.0, 1000000.0, 0.01]

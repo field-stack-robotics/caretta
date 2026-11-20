@@ -1,0 +1,42 @@
+<?xml version="1.0" ?>
+<!-- FS-1 Caretta colour palette: single source of truth (hex = filament / viewer colour).
+     rgba = channel / 255, 4 decimals. Change colours only here.
+
+     Use in a visual:  <xacro:fs1_material name="fs1_black"/>
+     The colour is written inline on purpose: urdfdom resolves a named-only <material name="..."/>
+     for the FIRST visual of a link only, so later visuals (tyre, brass, e-stop) would turn black. -->
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:property name="fs1_palette" value="${dict(
+      fs1_black        = '0.0863 0.0980 0.1059 1',
+      fs1_teal         = '0.0549 0.6196 0.5804 1',
+      fs1_amber        = '0.9490 0.6627 0.2314 1',
+      fs1_brass        = '0.7882 0.6392 0.2275 1',
+      fs1_estop_yellow = '0.9451 0.7686 0.0588 1',
+      fs1_estop_red    = '0.8157 0.1922 0.1765 1',
+      fs1_motor_yellow = '0.9490 0.7608 0.1882 1',
+      fs1_rim_yellow   = '0.9490 0.7608 0.1882 1',
+      fs1_tire         = '0.1020 0.1020 0.1020 1',
+      fs1_lidar        = '0.1333 0.1569 0.1686 1',
+      fs1_camera_pcb   = '0.1843 0.5608 0.2275 1',
+      fs1_caster       = '0.6039 0.6471 0.6588 1')}"/>
+  <!-- fs1_black        #16191B  plates, camera pod
+       fs1_teal         #0E9E94  edge stripes, logo icon, text
+       fs1_amber        #F2A93B  logo "lighthouse beam"
+       fs1_brass        #C9A33A  8 x M3 standoffs
+       fs1_estop_yellow #F1C40F  e-stop housing
+       fs1_estop_red    #D0312D  e-stop button
+       fs1_motor_yellow #F2C230  TT gear motors
+       fs1_rim_yellow   #F2C230  wheel rims
+       fs1_tire         #1A1A1A  tyres
+       fs1_lidar        #22282B  LSLiDAR N10
+       fs1_camera_pcb   #2F8F3A  Raspberry Pi camera board
+       fs1_caster       #9AA5A8  Pololu ball caster -->
+
+  <xacro:macro name="fs1_material" params="name">
+    <material name="${name}">
+      <color rgba="${fs1_palette[name]}"/>
+    </material>
+  </xacro:macro>
+
+</robot>

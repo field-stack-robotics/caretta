@@ -13,12 +13,15 @@
        e.g. controllers_file:=$(ros2 pkg prefix caretta_control)/share/caretta_control/config/caretta_controllers.yaml
        Passed in by the launch file, so this package does not depend on caretta_control. -->
   <xacro:arg name="controllers_file" default=""/>
+  <!-- dual-antenna RTK GPS on a bar (outdoor only): xacro caretta.urdf.xacro gps:=true -->
+  <xacro:arg name="gps" default="false"/>
 
   <xacro:include filename="$(find caretta_description)/urdf/caretta_materials.xacro"/>
   <!-- one file per sensor: its link, frames and Gazebo sensor -->
   <xacro:include filename="$(find caretta_description)/urdf/sensors/lidar.xacro"/>
   <xacro:include filename="$(find caretta_description)/urdf/sensors/camera.xacro"/>
   <xacro:include filename="$(find caretta_description)/urdf/sensors/imu.xacro"/>
+  <xacro:include filename="$(find caretta_description)/urdf/sensors/gps.xacro"/>
 
   <xacro:property name="PI" value="3.141592653589793" />
   <xacro:property name="wheel_radius" value="0.0345" />
@@ -215,6 +218,13 @@
          Middle plate top is z 0.0712; chip about 4 mm above it. -->
     <xacro:imu robot_name="${robot_name}" parent="${robot_name}_base_link"
                xyz="0 0 0.075" sim="$(arg use_gazebo)"/>
+
+    <!-- Dual-antenna RTK GPS, outdoor only (gps:=true): antennas 0.5 m apart along x,
+         0.2 m high (above the LiDAR scan plane), centred on the plate centre -->
+    <xacro:if value="$(arg gps)">
+      <xacro:dual_gps robot_name="${robot_name}" parent="${robot_name}_base_link"
+                      sim="$(arg use_gazebo)"/>
+    </xacro:if>
 
     <!-- Raspberry Pi camera in the camera pod -->
     <xacro:camera robot_name="${robot_name}" parent="${robot_name}_base_link"

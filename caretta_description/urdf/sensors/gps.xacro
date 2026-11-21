@@ -1,0 +1,66 @@
+<?xml version="1.0" ?>
+<!-- Dual-antenna RTK GPS (2 x u-blox ZED-F9P, moving base): position from the rear antenna,
+     heading from the line rear -> front (see caretta_navigation_outdoor, dual GPS heading node).
+     Antennas on a bar along x, above the LiDAR scan plane. Needs gz::sim::systems::NavSat
+     and <spherical_coordinates> in the world (caretta_outdoor.sdf).
+     Usage: <xacro:dual_gps robot_name="caretta" parent="caretta_base_link" sim="true|false"/>
+     noise: horizontal position noise in m (RTK ~0.01, plain GPS ~2.0); vertical is twice that.
+     Fortress applies the horizontal navsat noise to latitude/longitude in DEGREES, so it is
+     converted here (1 deg latitude = 111320 m; longitude error is cos(lat) smaller in metres). -->
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="dual_gps" params="robot_name parent baseline:=0.5 center_x:=-0.045 height:=0.20
+                                       noise:=0.01 sim:=false">
+
+    <!-- visual-only bar holding both antennas -->
+    <link name="${robot_name}_gps_bar">
+      <visual>
+        <geometry><box size="${baseline + 0.06} 0.02 0.01"/></geometry>
+        <xacro:fs1_material name="fs1_black"/>
+      </visual>
+    </link>
+    <joint name="${robot_name}_gps_bar_joint" type="fixed">
+      <origin xyz="${center_x} 0 ${height - 0.005}" rpy="0 0 0"/>
+      <parent link="${parent}"/>
+      <child link="${robot_name}_gps_bar"/>
+    </joint>
+
+    <!-- one antenna: link at the antenna phase centre (top of the puck), navsat sensor -->
+    <xacro:macro name="gps_antenna" params="name x">
+      <link name="${robot_name}_gps_${name}_link">
+        <visual>
+          <origin xyz="0 0 -0.0075" rpy="0 0 0"/>
+          <geometry><cylinder radius="0.03" length="0.015"/></geometry>
+          <xacro:fs1_material name="fs1_lidar"/>
+        </visual>
+      </link>
+      <joint name="${robot_name}_gps_${name}_joint" type="fixed">
+        <origin xyz="${x} 0 ${height + 0.015}" rpy="0 0 0"/>
+        <parent link="${parent}"/>
+        <child link="${robot_name}_gps_${name}_link"/>
+      </joint>
+
+      <xacro:if value="${sim}">
+        <gazebo reference="${robot_name}_gps_${name}_link">
+          <sensor name="${robot_name}_gps_${name}" type="navsat">
+            <always_on>true</always_on>
+            <update_rate>10</update_rate>
+            <topic>gps/${name}/fix</topic>
+            <ignition_frame_id>${robot_name}_gps_${name}_link</ignition_frame_id>
+            <navsat>
+              <position_sensing>
+                <horizontal><noise type="gaussian"><mean>0.0</mean><stddev>${noise / 111320.0}</stddev></noise></horizontal>
+                <vertical><noise type="gaussian"><mean>0.0</mean><stddev>${2 * noise}</stddev></noise></vertical>
+              </position_sensing>
+            </navsat>
+          </sensor>
+        </gazebo>
+      </xacro:if>
+    </xacro:macro>
+
+    <xacro:gps_antenna name="front" x="${center_x + baseline / 2}"/>
+    <xacro:gps_antenna name="rear"  x="${center_x - baseline / 2}"/>
+
+  </xacro:macro>
+
+</robot>

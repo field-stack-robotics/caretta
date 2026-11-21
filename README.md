@@ -101,7 +101,8 @@ caretta_ws/
     │   ├── caretta_description/   # model: URDF, meshes, sensors
     │   ├── caretta_control/       # controllers, twist_mux
     │   ├── caretta_localization/  # EKF (robot_localization)
-    │   └── caretta_navigation/    # SLAM (slam_toolbox), maps, AMCL, Nav2
+    │   ├── caretta_navigation/    # indoor: SLAM (slam_toolbox), maps, AMCL, Nav2
+    │   └── caretta_navigation_outdoor/  # outdoor: dual-antenna RTK GPS, GPS localization, Nav2
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -184,6 +185,27 @@ ros2 launch caretta_navigation navigation.launch.py use_sim_time:=true
 
 Give a goal in RViz with **2D Goal Pose**. The keyboard teleop always wins over Nav2, and `/e_stop` stops both.
 
+### Outdoors with GPS (dual-antenna RTK, Nav2 without a map)
+
+Start the outdoor field with the GPS antennas on the robot:
+
+```bash
+ros2 launch caretta_gazebo gazebo.launch.py world:=caretta_outdoor gps:=true
+```
+
+Start GPS localization, Nav2 and RViz, in a second terminal:
+
+```bash
+ros2 launch caretta_navigation_outdoor gps_navigation.launch.py use_sim_time:=true
+```
+
+Give a goal in RViz with **2D Goal Pose** (the map frame is the Gazebo world: x east, y north), or drive one lap
+of the gravel path with GPS waypoints (latitude, longitude), in a third terminal:
+
+```bash
+ros2 run caretta_navigation_outdoor gps_waypoints --ros-args -p use_sim_time:=true
+```
+
 ## Topics
 
 Sensors:
@@ -194,6 +216,8 @@ Sensors:
 - `/diff_drive_controller/odom`: wheel odometry
 - `/map`: occupancy grid, from SLAM or from the saved map (TF `map` -> `odom` from SLAM or AMCL)
 - `/amcl_pose`, `/particle_cloud`: AMCL estimate and particles
+- `/gps/front/fix`, `/gps/rear/fix`: the two GPS antennas (outdoor, `gps:=true`)
+- `/gps/heading`: heading from the two antennas; `/odometry/global`: robot in the map from GPS
 - `/odometry/filtered`: EKF output, wheel odometry + IMU (also the TF `odom` -> `caretta_base_footprint`)
 
 Velocity commands (`twist_mux` picks one; the higher priority wins):

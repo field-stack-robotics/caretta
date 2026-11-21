@@ -6,7 +6,8 @@
 
 Goals: RViz "GpsGoal" panel (type lat/lon, Go), RViz "2D Goal Pose" (map = Gazebo world: x east,
 y north), or GPS waypoints (gps_waypoints).
-RViz ground: the top-down image of the Gazebo world (outdoor_ground), lined up with the simulation.
+RViz ground: the top-down image of the Gazebo world as map tiles (media/ground_tiles, drawn behind
+the costmaps by rviz_satellite), lined up with the simulation.
 Real satellite tiles (rviz_satellite, Esri, internet) are in the "Satellite" display, off by default:
 the Gazebo world is made up, so they do not match it (useful on a real field).
 Teleop (/cmd_vel_teleop) wins over Nav2, /e_stop stops both (twist_mux, caretta_control).
@@ -14,6 +15,7 @@ Indoor navigation (caretta_navigation) is separate; do not run both.
 Settings: config/gps_localization.yaml, config/nav2_outdoor.yaml
 """
 import os
+import tempfile
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
@@ -27,7 +29,13 @@ from launch_ros.actions import Node
 def generate_launch_description():
     share = get_package_share_directory('caretta_navigation_outdoor')
     nav2_config = os.path.join(share, 'config', 'nav2_outdoor.yaml')
-    rviz_config = os.path.join(share, 'rviz', 'gps_navigation.rviz')
+    # the RViz config loads the Gazebo ground tiles from this package with a file:// URL;
+    # the absolute path is only known here, so write a copy of the config with it filled in
+    with open(os.path.join(share, 'rviz', 'gps_navigation.rviz')) as f:
+        rviz_text = f.read().replace('@GROUND_TILES@', os.path.join(share, 'media', 'ground_tiles'))
+    rviz_config = os.path.join(tempfile.gettempdir(), 'caretta_gps_navigation.rviz')
+    with open(rviz_config, 'w') as f:
+        f.write(rviz_text)
     gps_launch = os.path.join(share, 'launch', 'gps_localization.launch.py')
     nav2_launch = os.path.join(get_package_share_directory('nav2_bringup'),
                                'launch', 'navigation_launch.py')
@@ -56,7 +64,7 @@ def generate_launch_description():
         output='screen',
     )
 
-    # test targets: an X on the ground with its lat/lon (T1 2.5 m, T2 5 m in front of the start)
+    # test targets on the path: an X on the ground with its lat/lon (T1 at 10.6 m, T2 at 5 m, south side)
     targets = Node(
         package='caretta_navigation_outdoor',
         executable='gps_targets',
@@ -71,15 +79,6 @@ def generate_launch_description():
         executable='gps_map_origin',
         parameters=[os.path.join(share, 'config', 'gps_localization.yaml'),
                     {'use_sim_time': use_sim_time}],
-        condition=IfCondition(LaunchConfiguration('rviz')),
-        output='screen',
-    )
-
-    # top-down image of the Gazebo world as the ground in RViz (lines up with the simulation)
-    ground = Node(
-        package='caretta_navigation_outdoor',
-        executable='outdoor_ground',
-        parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(LaunchConfiguration('rviz')),
         output='screen',
     )
@@ -102,6 +101,5 @@ def generate_launch_description():
         gps_goal,
         targets,
         map_origin,
-        ground,
         rviz,
     ])

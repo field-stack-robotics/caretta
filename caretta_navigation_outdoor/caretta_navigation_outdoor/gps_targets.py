@@ -12,8 +12,9 @@ from rclpy.node import Node
 from robot_localization.srv import ToLL
 from visualization_msgs.msg import Marker, MarkerArray
 
-# default: 2.5 m and 5 m in front of the robot's start (spawn (0, 0) facing east, +x)
-DEFAULT_POINTS = [2.5, 0.0, 5.0, 0.0]
+# default, both on the gravel path: T1 (yellow) 10.6 m along the south side (picked at random),
+# T2 (red) 5 m in front of the robot's start (spawn (0, 0) facing east, +x)
+DEFAULT_POINTS = [10.6, 0.0, 5.0, 0.0]
 X_SIZE = 0.4          # m, half length of the X arms
 COLOURS = [(0.95, 0.66, 0.23), (0.85, 0.15, 0.15), (0.15, 0.45, 0.85), (0.60, 0.20, 0.70)]
 

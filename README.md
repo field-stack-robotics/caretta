@@ -101,7 +101,7 @@ caretta_ws/
     │   ├── caretta_description/   # model: URDF, meshes, sensors
     │   ├── caretta_control/       # controllers, twist_mux
     │   ├── caretta_localization/  # EKF (robot_localization)
-    │   └── caretta_navigation/    # SLAM (slam_toolbox), maps
+    │   └── caretta_navigation/    # SLAM (slam_toolbox), maps, AMCL
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -157,6 +157,22 @@ ros2 run nav2_map_server map_saver_cli -f src/caretta/caretta_navigation/maps/ca
   --ros-args -p use_sim_time:=true
 ```
 
+### Localize on the saved map (AMCL)
+
+Do not run it together with SLAM: both publish the TF `map` -> `odom`.
+
+```bash
+ros2 launch caretta_gazebo gazebo.launch.py
+ros2 launch caretta_navigation amcl.launch.py use_sim_time:=true
+```
+
+The robot starts at the map origin, so AMCL knows where it is. If it gets lost, set the pose in RViz with
+**2D Pose Estimate**, or spread the particles over the whole map and drive a bit:
+
+```bash
+ros2 service call /reinitialize_global_localization std_srvs/srv/Empty
+```
+
 ## Topics
 
 Sensors:
@@ -165,7 +181,8 @@ Sensors:
 - `/camera/image_raw`: camera
 - `/imu`: IMU (BNO055, 100 Hz)
 - `/diff_drive_controller/odom`: wheel odometry
-- `/map`: occupancy grid from SLAM (also the TF `map` -> `odom`)
+- `/map`: occupancy grid, from SLAM or from the saved map (TF `map` -> `odom` from SLAM or AMCL)
+- `/amcl_pose`, `/particle_cloud`: AMCL estimate and particles
 - `/odometry/filtered`: EKF output, wheel odometry + IMU (also the TF `odom` -> `caretta_base_footprint`)
 
 Velocity commands (`twist_mux` picks one; the higher priority wins):

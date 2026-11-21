@@ -34,6 +34,8 @@ setup(
             'gps_waypoints = caretta_navigation_outdoor.gps_waypoints:main',
             'gps_map_origin = caretta_navigation_outdoor.gps_map_origin:main',
             'outdoor_ground = caretta_navigation_outdoor.outdoor_ground:main',
+            'gps_goal = caretta_navigation_outdoor.gps_goal:main',
+            'gps_targets = caretta_navigation_outdoor.gps_targets:main',
         ],
     },
 )

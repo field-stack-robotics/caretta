@@ -1,8 +1,9 @@
 # RViz for outdoor GPS navigation (caretta_navigation_outdoor gps_navigation.launch.py):
 # ground = top-down image of the Gazebo world; real satellite tiles (Esri, internet) off by default;
 # no map; rolling costmaps, global plan, GPS positions (orange arrows), robot, LiDAR.
-# map frame = Gazebo world (x east, y north). Tools: 2D Goal Pose -> Nav2.
-# Fixed Frame map, top-down view of the house. Generated for Caretta; edit in RViz and save over it.
+# map frame = Gazebo world (x east, y north). Tools: 2D Goal Pose -> Nav2, Publish Point -> lat/lon
+# into the GpsGoal panel. Panels: Navigation 2, GpsGoal (type lat/lon, Go). GpsTargets: test X marks + lat/lon.
+# Fixed Frame map, top-down view of the outdoor field. Generated for Caretta; edit in RViz and save over it.
 Panels:
   - Class: rviz_common/Displays
     Name: Displays
@@ -12,6 +13,8 @@ Panels:
     Name: Views
   - Class: nav2_rviz_plugins/Navigation 2
     Name: Navigation 2
+  - Class: caretta_rviz_plugins/GpsGoal
+    Name: GpsGoal
 Visualization Manager:
   Class: ""
   Displays:
@@ -92,6 +95,18 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /local_costmap/costmap_updates
       Use Timestamp: false
+      Value: true
+    - Class: rviz_default_plugins/MarkerArray
+      Enabled: true
+      Name: GpsTargets
+      Namespaces:
+        {}
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /gps_targets
       Value: true
     - Alpha: 1
       Buffer Length: 1
@@ -227,6 +242,14 @@ Visualization Manager:
         History Policy: Keep Last
         Reliability Policy: Reliable
         Value: /goal_pose
+    - Class: rviz_default_plugins/PublishPoint
+      Single click: true
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        History Policy: Keep Last
+        Reliability Policy: Reliable
+        Value: /clicked_point
     - Class: rviz_default_plugins/Measure
       Line color: 128; 128; 0
   Transformation:

@@ -4,7 +4,8 @@
   ros2 launch caretta_navigation_outdoor gps_navigation.launch.py use_sim_time:=true
   ros2 run caretta_navigation_outdoor gps_waypoints --ros-args -p use_sim_time:=true
 
-Goals: RViz "2D Goal Pose" (map = Gazebo world: x east, y north), or GPS waypoints (gps_waypoints).
+Goals: RViz "GpsGoal" panel (type lat/lon, Go), RViz "2D Goal Pose" (map = Gazebo world: x east,
+y north), or GPS waypoints (gps_waypoints).
 RViz ground: the top-down image of the Gazebo world (outdoor_ground), lined up with the simulation.
 Real satellite tiles (rviz_satellite, Esri, internet) are in the "Satellite" display, off by default:
 the Gazebo world is made up, so they do not match it (useful on a real field).
@@ -47,6 +48,23 @@ def generate_launch_description():
                           'autostart': 'true'}.items(),
     )])
 
+    # GPS goals typed in the RViz "GpsGoal" panel (caretta_rviz_plugins) -> /fromLL -> Nav2
+    gps_goal = Node(
+        package='caretta_navigation_outdoor',
+        executable='gps_goal',
+        parameters=[{'use_sim_time': use_sim_time}],
+        output='screen',
+    )
+
+    # test targets: an X on the ground with its lat/lon (T1 2.5 m, T2 5 m in front of the start)
+    targets = Node(
+        package='caretta_navigation_outdoor',
+        executable='gps_targets',
+        parameters=[{'use_sim_time': use_sim_time}],
+        condition=IfCondition(LaunchConfiguration('rviz')),
+        output='screen',
+    )
+
     # map origin as a NavSatFix in the map frame: lines up the satellite tiles in RViz
     map_origin = Node(
         package='caretta_navigation_outdoor',
@@ -81,6 +99,8 @@ def generate_launch_description():
         DeclareLaunchArgument('rviz', default_value='true', description='start RViz'),
         gps,
         nav2,
+        gps_goal,
+        targets,
         map_origin,
         ground,
         rviz,

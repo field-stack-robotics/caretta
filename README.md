@@ -102,7 +102,8 @@ caretta_ws/
     │   ├── caretta_control/       # controllers, twist_mux
     │   ├── caretta_localization/  # EKF (robot_localization)
     │   ├── caretta_navigation/    # indoor: SLAM (slam_toolbox), maps, AMCL, Nav2
-    │   └── caretta_navigation_outdoor/  # outdoor: dual-antenna RTK GPS, GPS localization, Nav2
+    │   ├── caretta_navigation_outdoor/  # outdoor: dual-antenna RTK GPS, GPS localization, Nav2
+    │   └── caretta_rviz_plugins/  # RViz GpsGoal panel (latitude/longitude goal)
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -203,7 +204,12 @@ In RViz the ground is a top-down image of the Gazebo world, so the robot drives 
 trees as in Gazebo. Real satellite tiles (`rviz_satellite`, Esri World Imagery, needs internet) are in the
 **Satellite** display, off by default; they show the real place at the map origin, not the Gazebo world.
 
-Give a goal in RViz with **2D Goal Pose** (the map frame is the Gazebo world: x east, y north), or drive one lap
+Give a GPS goal in the RViz **GpsGoal** panel: type the latitude and longitude (heading optional) and press **Go**.
+With the **Publish Point** tool, a click on the ground fills in the latitude/longitude of that spot.
+Two test targets are drawn on the ground: **T1** (2.5 m) and **T2** (5 m) in front of the start, an X with its
+latitude/longitude below it; type those into the panel.
+
+Or give a goal in RViz with **2D Goal Pose** (the map frame is the Gazebo world: x east, y north), or drive one lap
 of the gravel path with GPS waypoints (latitude, longitude), in a third terminal:
 
 ```bash

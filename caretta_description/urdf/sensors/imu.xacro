@@ -7,8 +7,18 @@
 
   <xacro:macro name="imu" params="robot_name parent xyz rpy:='0 0 0' sim:=false">
 
-    <!-- Frame at the chip, x forward, z up (REP-103) -->
-    <link name="${robot_name}_imu_link"/>
+    <!-- Frame at the chip, x forward, z up (REP-103).
+         Visual: simple box for the BNO055 breakout board (27 x 20 x 4 mm), sitting
+         under the frame so its top is level with the chip. No collision (inside the body). -->
+    <link name="${robot_name}_imu_link">
+        <visual>
+            <origin xyz="0 0 -0.0018" rpy="0 0 0"/>
+            <geometry>
+                <box size="0.027 0.020 0.004"/>
+            </geometry>
+            <xacro:fs1_material name="fs1_imu_pcb"/>
+        </visual>
+    </link>
 
     <joint name="${robot_name}_imu_joint" type="fixed">
         <origin xyz="${xyz}" rpy="${rpy}"/>

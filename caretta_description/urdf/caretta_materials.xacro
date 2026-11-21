@@ -19,6 +19,7 @@
       fs1_tire         = '0.1020 0.1020 0.1020 1',
       fs1_lidar        = '0.1333 0.1569 0.1686 1',
       fs1_camera_pcb   = '0.1843 0.5608 0.2275 1',
+      fs1_imu_pcb      = '0.1216 0.3059 0.6118 1',
       fs1_caster       = '0.6039 0.6471 0.6588 1')}"/>
   <!-- fs1_black        #16191B  plates, camera pod
        fs1_teal         #0E9E94  edge stripes, logo icon, text
@@ -31,6 +32,7 @@
        fs1_tire         #1A1A1A  tyres
        fs1_lidar        #22282B  LSLiDAR N10
        fs1_camera_pcb   #2F8F3A  Raspberry Pi camera board
+       fs1_imu_pcb      #1F4E9C  BNO055 IMU board
        fs1_caster       #9AA5A8  Pololu ball caster -->
 
   <xacro:macro name="fs1_material" params="name">

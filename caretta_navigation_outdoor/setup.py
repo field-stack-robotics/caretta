@@ -1,3 +1,5 @@
+from glob import glob
+
 from setuptools import find_packages, setup
 
 package_name = 'caretta_navigation_outdoor'
@@ -10,6 +12,9 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/config', glob('config/*.yaml')),
+        ('share/' + package_name + '/launch', glob('launch/*.launch.py')),
+        ('share/' + package_name + '/rviz', glob('rviz/*.rviz')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -24,7 +29,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'dual_gps_heading = caretta_navigation_outdoor.dual_gps_heading:main'
+            'dual_gps_heading = caretta_navigation_outdoor.dual_gps_heading:main',
+            'gps_waypoints = caretta_navigation_outdoor.gps_waypoints:main',
         ],
     },
 )

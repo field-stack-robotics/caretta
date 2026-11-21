@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Flat 1 x 1 m plane (x -0.5..0.5 = west..east, y -0.5..0.5 = south..north) textured with the
+     top-down image of caretta_outdoor.sdf (outdoor_ground.jpg, north up). The outdoor_ground node
+     scales it to 50 x 40 m and puts it at the right place in the map frame. -->
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset>
+    <unit name="meter" meter="1"/>
+    <up_axis>Z_UP</up_axis>
+  </asset>
+  <library_images>
+    <image id="ground_image" name="ground_image">
+      <init_from>outdoor_ground.jpg</init_from>
+    </image>
+  </library_images>
+  <library_effects>
+    <effect id="ground_effect">
+      <profile_COMMON>
+        <newparam sid="ground_surface">
+          <surface type="2D"><init_from>ground_image</init_from></surface>
+        </newparam>
+        <newparam sid="ground_sampler">
+          <sampler2D><source>ground_surface</source></sampler2D>
+        </newparam>
+        <technique sid="common">
+          <lambert>
+            <emission><color>0.3 0.3 0.3 1</color></emission>
+            <ambient><color>1 1 1 1</color></ambient>
+            <diffuse><texture texture="ground_sampler" texcoord="UVMap"/></diffuse>
+          </lambert>
+        </technique>
+      </profile_COMMON>
+    </effect>
+  </library_effects>
+  <library_materials>
+    <material id="ground_material" name="ground_material">
+      <instance_effect url="#ground_effect"/>
+    </material>
+  </library_materials>
+  <library_geometries>
+    <geometry id="ground_mesh" name="ground_mesh">
+      <mesh>
+        <source id="ground_positions">
+          <float_array id="ground_positions_array" count="12">-0.5 -0.5 0  0.5 -0.5 0  0.5 0.5 0  -0.5 0.5 0</float_array>
+          <technique_common>
+            <accessor source="#ground_positions_array" count="4" stride="3">
+              <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <source id="ground_normals">
+          <float_array id="ground_normals_array" count="3">0 0 1</float_array>
+          <technique_common>
+            <accessor source="#ground_normals_array" count="1" stride="3">
+              <param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <!-- Collada texture coordinates: (0, 0) = bottom-left of the image (south-west) -->
+        <source id="ground_uvs">
+          <float_array id="ground_uvs_array" count="8">0 0  1 0  1 1  0 1</float_array>
+          <technique_common>
+            <accessor source="#ground_uvs_array" count="4" stride="2">
+              <param name="S" type="float"/><param name="T" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="ground_vertices">
+          <input semantic="POSITION" source="#ground_positions"/>
+        </vertices>
+        <triangles material="ground_material" count="2">
+          <input semantic="VERTEX" source="#ground_vertices" offset="0"/>
+          <input semantic="NORMAL" source="#ground_normals" offset="1"/>
+          <input semantic="TEXCOORD" source="#ground_uvs" offset="2" set="0"/>
+          <p>0 0 0  1 0 1  2 0 2   0 0 0  2 0 2  3 0 3</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+  <library_visual_scenes>
+    <visual_scene id="scene" name="scene">
+      <node id="ground" name="ground">
+        <instance_geometry url="#ground_mesh">
+          <bind_material>
+            <technique_common>
+              <instance_material symbol="ground_material" target="#ground_material">
+                <bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/>
+              </instance_material>
+            </technique_common>
+          </bind_material>
+        </instance_geometry>
+      </node>
+    </visual_scene>
+  </library_visual_scenes>
+  <scene>
+    <instance_visual_scene url="#scene"/>
+  </scene>
+</COLLADA>

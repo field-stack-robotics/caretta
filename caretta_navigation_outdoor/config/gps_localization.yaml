@@ -85,3 +85,9 @@ navsat_transform:
     # So map coordinates = Gazebo world coordinates. Real field: set your own origin here.
     wait_for_datum: true
     datum: [52.0, 5.0, 0.0]
+
+# map origin for the satellite view in RViz (rviz_satellite): keep equal to the datum above
+gps_map_origin:
+  ros__parameters:
+    latitude: 52.0
+    longitude: 5.0

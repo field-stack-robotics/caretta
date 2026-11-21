@@ -199,6 +199,10 @@ Start GPS localization, Nav2 and RViz, in a second terminal:
 ros2 launch caretta_navigation_outdoor gps_navigation.launch.py use_sim_time:=true
 ```
 
+In RViz the ground is a top-down image of the Gazebo world, so the robot drives over the same grass, path and
+trees as in Gazebo. Real satellite tiles (`rviz_satellite`, Esri World Imagery, needs internet) are in the
+**Satellite** display, off by default; they show the real place at the map origin, not the Gazebo world.
+
 Give a goal in RViz with **2D Goal Pose** (the map frame is the Gazebo world: x east, y north), or drive one lap
 of the gravel path with GPS waypoints (latitude, longitude), in a third terminal:
 

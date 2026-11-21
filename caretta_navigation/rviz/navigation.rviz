@@ -270,14 +270,46 @@ Visualization Manager:
     Current:
       Angle: 0
       Class: rviz_default_plugins/TopDownOrtho
-      Name: Current View
+      Name: Follow robot (top-down)
       Near Clip Distance: 0.01
-      Scale: 90
-      Target Frame: <Fixed Frame>
+      Scale: 70
+      Target Frame: caretta_base_footprint
       Value: TopDownOrtho (rviz_default_plugins)
       X: 0
       Y: 0
-    Saved: ~
+    Saved:
+      - Angle: 0
+        Class: rviz_default_plugins/TopDownOrtho
+        Name: Follow robot (top-down)
+        Near Clip Distance: 0.01
+        Scale: 70
+        Target Frame: caretta_base_footprint
+        Value: TopDownOrtho (rviz_default_plugins)
+        X: 0
+        Y: 0
+      - Class: rviz_default_plugins/ThirdPersonFollower
+        Distance: 2.5
+        Focal Point:
+          X: 0
+          Y: 0
+          Z: 0
+        Focal Shape Fixed Size: true
+        Focal Shape Size: 0.05
+        Name: Behind robot (3D)
+        Near Clip Distance: 0.01
+        Pitch: 0.6
+        Target Frame: caretta_base_footprint
+        Value: ThirdPersonFollower (rviz_default_plugins)
+        Yaw: 3.14159
+      - Angle: 0
+        Class: rviz_default_plugins/TopDownOrtho
+        Name: Whole office map
+        Near Clip Distance: 0.01
+        Scale: 28
+        Target Frame: <Fixed Frame>
+        Value: TopDownOrtho (rviz_default_plugins)
+        X: 9
+        Y: 0
 Window Geometry:
   Height: 900
   Width: 1400

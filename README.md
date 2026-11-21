@@ -38,7 +38,7 @@ cd ~/caretta_ws/src
 
 ### 3. Clone the repos
 
-Download the robot model:
+Download the robot (model and control):
 
 ```bash
 git clone -b humble https://github.com/field-stack-robotics/caretta.git
@@ -97,8 +97,9 @@ Run `source ~/caretta_ws/install/setup.bash` in every new terminal.
 ```
 caretta_ws/
 └── src/
-    ├── caretta/              # robot model (URDF, meshes, controllers config)
-    │   └── caretta_description/
+    ├── caretta/              # the robot
+    │   ├── caretta_description/   # model: URDF, meshes, sensors
+    │   └── caretta_control/       # controllers, twist_mux
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -121,15 +122,30 @@ Drive it (in a second terminal):
 
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard \
-  --ros-args -r cmd_vel:=/diff_drive_controller/cmd_vel_unstamped
+  --ros-args -r cmd_vel:=cmd_vel_teleop
+```
+
+Emergency stop (stops every velocity command), and release it:
+
+```bash
+ros2 topic pub --once /e_stop std_msgs/msg/Bool "data: true"
+ros2 topic pub --once /e_stop std_msgs/msg/Bool "data: false"
 ```
 
 ## Topics
+
+Sensors:
 
 - `/scan`: LiDAR
 - `/camera/image_raw`: camera
 - `/imu`: IMU (BNO055, 100 Hz)
 - `/diff_drive_controller/odom`: odometry
+
+Velocity commands (`twist_mux` picks one; the higher priority wins):
+
+- `/cmd_vel_teleop`: keyboard, priority 100
+- `/cmd_vel`: autonomous navigation (Nav2), priority 10
+- `/e_stop`: `std_msgs/Bool`, `true` stops the robot
 
 ## License
 

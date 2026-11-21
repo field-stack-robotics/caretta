@@ -1,0 +1,20 @@
+# twist_mux: picks one velocity command for the robot.
+# Highest priority wins (teleop > Nav2). /e_stop (std_msgs/Bool, true) stops everything.
+# Output: /diff_drive_controller/cmd_vel_unstamped (remapped in the launch file).
+
+twist_mux:
+  ros__parameters:
+    topics:
+      navigation:
+        topic   : cmd_vel
+        timeout : 0.5
+        priority: 10
+      teleop:
+        topic   : cmd_vel_teleop
+        timeout : 0.5
+        priority: 100
+    locks:
+      e_stop:
+        topic   : e_stop
+        timeout : 0.0
+        priority: 255

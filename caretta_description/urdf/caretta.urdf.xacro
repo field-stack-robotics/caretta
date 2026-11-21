@@ -9,6 +9,10 @@
 
   <!-- Gazebo + ros2_control only when asked: xacro caretta.urdf.xacro use_gazebo:=true -->
   <xacro:arg name="use_gazebo" default="false"/>
+  <!-- controller config for the Gazebo ros2_control plugin (needed with use_gazebo:=true),
+       e.g. controllers_file:=$(ros2 pkg prefix caretta_control)/share/caretta_control/config/caretta_controllers.yaml
+       Passed in by the launch file, so this package does not depend on caretta_control. -->
+  <xacro:arg name="controllers_file" default=""/>
 
   <xacro:include filename="$(find caretta_description)/urdf/caretta_materials.xacro"/>
   <!-- one file per sensor: its link, frames and Gazebo sensor -->
@@ -265,7 +269,7 @@
 
   <xacro:if value="$(arg use_gazebo)">
     <xacro:include filename="$(find caretta_description)/urdf/control/ros2_control.xacro"/>
-    <xacro:caretta_ros2_control robot_name="caretta"/>
+    <xacro:caretta_ros2_control robot_name="caretta" controllers_file="$(arg controllers_file)"/>
   </xacro:if>
 
 </robot>

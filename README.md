@@ -101,7 +101,7 @@ caretta_ws/
     │   ├── caretta_description/   # model: URDF, meshes, sensors
     │   ├── caretta_control/       # controllers, twist_mux
     │   ├── caretta_localization/  # EKF (robot_localization)
-    │   └── caretta_navigation/    # SLAM (slam_toolbox), maps, AMCL
+    │   └── caretta_navigation/    # SLAM (slam_toolbox), maps, AMCL, Nav2
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -172,6 +172,17 @@ The robot starts at the map origin, so AMCL knows where it is. If it gets lost, 
 ```bash
 ros2 service call /reinitialize_global_localization std_srvs/srv/Empty
 ```
+
+### Navigate on its own (Nav2)
+
+Starts AMCL, Nav2 and RViz together (do not start `amcl.launch.py` or SLAM as well):
+
+```bash
+ros2 launch caretta_gazebo gazebo.launch.py
+ros2 launch caretta_navigation navigation.launch.py use_sim_time:=true
+```
+
+Give a goal in RViz with **2D Goal Pose**. The keyboard teleop always wins over Nav2, and `/e_stop` stops both.
 
 ## Topics
 

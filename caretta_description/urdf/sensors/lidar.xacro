@@ -1,0 +1,90 @@
+<?xml version="1.0" ?>
+<!-- LSLiDAR N10 2D LiDAR: link, scan-plane frame, gpu_lidar sensor (topic /scan).
+     Needs gz::sim::systems::Sensors in the world. -->
+<!-- Usage: <xacro:lidar robot_name="caretta" parent="caretta_base_link" xyz="..." sim="true|false"/>
+     sim:=true adds the Gazebo (Ignition Fortress) sensor. -->
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="lidar" params="robot_name parent xyz rpy:='0 0 0' scan_height:=0.029 sim:=false">
+
+    <!-- Link lslidar_n10 (frame on the lidar base, centred on the rotation axis) -->
+    <link name="${robot_name}_lidar">
+        <inertial>
+            <origin xyz="0 0 0.018" rpy="0 0 0"/>
+            <!-- TODO: estimate, weigh the real N10 -->
+            <mass value="0.05"/>
+            <inertia ixx="1e-05" ixy="0" ixz="0" iyy="1e-05" iyz="0" izz="1.5e-05"/>
+        </inertial>
+        <visual>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <geometry>
+                <mesh filename="package://caretta_description/urdf/meshes/lslidar_n10.stl"/>
+            </geometry>
+            <xacro:fs1_material name="fs1_lidar"/>
+        </visual>
+        <!-- cylinder collision (d49 x h35.8 mm) instead of the mesh -->
+        <collision>
+            <origin xyz="0 0 0.0179" rpy="0 0 0"/>
+            <geometry>
+                <cylinder radius="0.0245" length="0.0358"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="${robot_name}_lidar_joint" type="fixed">
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <parent link="${parent}"/>
+        <child link="${robot_name}_lidar"/>
+    </joint>
+
+    <!-- Laser frame at the scan plane: use this as frame_id of /scan -->
+    <link name="${robot_name}_laser"/>
+
+    <joint name="${robot_name}_laser_joint" type="fixed">
+        <origin xyz="0 0 ${scan_height}" rpy="0 0 0"/>
+        <parent link="${robot_name}_lidar"/>
+        <child link="${robot_name}_laser"/>
+    </joint>
+
+    <xacro:if value="${sim}">
+      <!-- LSLiDAR N10: frame at the scan plane (caretta_laser) -->
+      <gazebo reference="${robot_name}_laser">
+        <sensor name="${robot_name}_lslidar" type="gpu_lidar">
+          <always_on>true</always_on>
+          <visualize>false</visualize>
+          <update_rate>10</update_rate>
+          <topic>scan</topic>
+          <ignition_frame_id>${robot_name}_laser</ignition_frame_id>
+          <lidar>
+            <scan>
+              <horizontal>
+                <samples>270</samples>
+                <resolution>1</resolution>
+                <min_angle>-3.141593</min_angle>
+                <max_angle>3.141593</max_angle>
+              </horizontal>
+              <vertical>
+                <samples>1</samples>
+                <resolution>1</resolution>
+                <min_angle>0</min_angle>
+                <max_angle>0</max_angle>
+              </vertical>
+            </scan>
+            <range>
+              <min>0.05</min>
+              <max>20.0</max>
+              <resolution>0.015</resolution>
+            </range>
+            <noise>
+              <type>gaussian</type>
+              <mean>0.0</mean>
+              <stddev>0.0</stddev>
+            </noise>
+          </lidar>
+        </sensor>
+      </gazebo>
+    </xacro:if>
+
+  </xacro:macro>
+
+</robot>

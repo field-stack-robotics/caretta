@@ -7,7 +7,14 @@
 <!-- Plate coordinates (drawings) -> base_link: x_urdf = (x_plate - 45 mm).                          -->
 <robot name="caretta" xmlns:xacro="http://ros.org/wiki/xacro">
 
+  <!-- Gazebo + ros2_control only when asked: xacro caretta.urdf.xacro use_gazebo:=true -->
+  <xacro:arg name="use_gazebo" default="false"/>
+
   <xacro:include filename="$(find caretta_description)/urdf/caretta_materials.xacro"/>
+  <!-- one file per sensor: its link, frames and Gazebo sensor -->
+  <xacro:include filename="$(find caretta_description)/urdf/sensors/lidar.xacro"/>
+  <xacro:include filename="$(find caretta_description)/urdf/sensors/camera.xacro"/>
+  <xacro:include filename="$(find caretta_description)/urdf/sensors/imu.xacro"/>
 
   <xacro:property name="PI" value="3.141592653589793" />
   <xacro:property name="wheel_radius" value="0.0345" />
@@ -17,8 +24,7 @@
   <xacro:property name="caster_x" value="0.1270" />
   <xacro:property name="caster_radius" value="0.0060" />
   <!-- LiDAR scan plane height above the lidar base: middle of the rotating optical head
-       (mesh: base z 0..22 mm, head z 22..35.8 mm). Check against the N10 datasheet.
-       Scan plane z = 0.1172 + 0.029 = 0.146 m, 10 mm above the e-stop top (no self-hits). -->
+       (mesh: base z 0..22 mm, head z 22..35.8 mm). -->
   <xacro:property name="lidar_scan_height" value="0.029" />
 
   <xacro:macro name="caretta_body" params="robot_name">
@@ -131,11 +137,13 @@
             </geometry>
             <xacro:fs1_material name="fs1_rim_yellow"/>
         </visual>
-        <!-- simple cylinder collision: smoother contact in Gazebo than the tyre mesh -->
+        <!-- sphere collision: one contact point in the middle of the tyre, so the effective
+             track is exactly wheel_separation. A wide cylinder touched the ground at its inner
+             edges in Gazebo and the robot turned 13 % faster than odometry (measured with the IMU). -->
         <collision>
-            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
-                <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+                <sphere radius="${wheel_radius}"/>
             </geometry>
         </collision>
       </link>
@@ -183,81 +191,20 @@
         <child link="${robot_name}_motor_2"/>
     </joint>
 
-    <!-- Link lslidar_n10 (frame on the lidar base, centred on the rotation axis) -->
-    <link name="${robot_name}_lidar">
-        <inertial>
-            <origin xyz="0 0 0.018" rpy="0 0 0"/>
-            <!-- TODO: estimate, weigh the real N10 -->
-            <mass value="0.05"/>
-            <inertia ixx="1e-05" ixy="0" ixz="0" iyy="1e-05" iyz="0" izz="1.5e-05"/>
-        </inertial>
-        <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-                <mesh filename="package://caretta_description/urdf/meshes/lslidar_n10.stl"/>
-            </geometry>
-            <xacro:fs1_material name="fs1_lidar"/>
-        </visual>
-        <!-- cylinder collision (d49 x h35.8 mm) instead of the mesh -->
-        <collision>
-            <origin xyz="0 0 0.0179" rpy="0 0 0"/>
-            <geometry>
-                <cylinder radius="0.0245" length="0.0358"/>
-            </geometry>
-        </collision>
-    </link>
+    <!-- LiDAR on the top plate, on the rotation axis. Scan plane = 0.1172 + 0.029 = 0.146 m,
+         10 mm above the e-stop top (no self-hits). Check scan_height against the N10 datasheet. -->
+    <xacro:lidar robot_name="${robot_name}" parent="${robot_name}_base_link"
+                 xyz="0 0 0.1172" scan_height="${lidar_scan_height}" sim="$(arg use_gazebo)"/>
 
-    <joint name="${robot_name}_lidar_joint" type="fixed">
-        <origin xyz="0 0 0.1172" rpy="0 0 0"/>
-        <parent link="${robot_name}_base_link"/>
-        <child link="${robot_name}_lidar"/>
-    </joint>
+    <!-- BNO055 IMU on the middle plate, right above the rotation centre (axle midpoint):
+         no false centripetal/tangential acceleration when turning.
+         Middle plate top is z 0.0712; chip about 4 mm above it. -->
+    <xacro:imu robot_name="${robot_name}" parent="${robot_name}_base_link"
+               xyz="0 0 0.075" sim="$(arg use_gazebo)"/>
 
-    <!-- Laser frame at the scan plane: use this as frame_id of /scan -->
-    <link name="${robot_name}_laser"/>
-
-    <joint name="${robot_name}_laser_joint" type="fixed">
-        <origin xyz="0 0 ${lidar_scan_height}" rpy="0 0 0"/>
-        <parent link="${robot_name}_lidar"/>
-        <child link="${robot_name}_laser"/>
-    </joint>
-
-    <!-- Link raspicam (frame at the lens, x = optical axis forward; add an optical frame for ROS images) -->
-    <link name="${robot_name}_camera">
-        <inertial>
-            <origin xyz="-0.003 0 0" rpy="0 0 0"/>
-            <mass value="0.01"/>
-            <inertia ixx="1e-07" ixy="0" ixz="0" iyy="1e-07" iyz="0" izz="1e-07"/>
-        </inertial>
-        <visual>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-                <mesh filename="package://caretta_description/urdf/meshes/raspicam.stl"/>
-            </geometry>
-            <xacro:fs1_material name="fs1_camera_pcb"/>
-        </visual>
-        <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-                <mesh filename="package://caretta_description/urdf/meshes/raspicam.stl"/>
-            </geometry>
-        </collision>
-    </link>
-
-    <joint name="${robot_name}_camera_joint" type="fixed">
-        <origin xyz="0.0590 0 0.0982" rpy="0 0 0"/>
-        <parent link="${robot_name}_base_link"/>
-        <child link="${robot_name}_camera"/>
-    </joint>
-
-    <!-- Optical frame (z forward, x right, y down): use this as frame_id of camera images -->
-    <link name="${robot_name}_camera_optical"/>
-
-    <joint name="${robot_name}_camera_optical_joint" type="fixed">
-        <origin xyz="0 0 0" rpy="${-PI/2} 0 ${-PI/2}"/>
-        <parent link="${robot_name}_camera"/>
-        <child link="${robot_name}_camera_optical"/>
-    </joint>
+    <!-- Raspberry Pi camera in the camera pod -->
+    <xacro:camera robot_name="${robot_name}" parent="${robot_name}_base_link"
+                  xyz="0.0590 0 0.0982" sim="$(arg use_gazebo)"/>
 
     <!-- Rear ball caster (Pololu 1/2"), frame at the ball centre -->
     <link name="${robot_name}_ball_caster">
@@ -306,13 +253,9 @@
 
   <xacro:caretta_body robot_name="caretta"/>
 
-  <!-- Gazebo + ros2_control only when asked: xacro caretta.urdf.xacro use_gazebo:=true -->
-  <xacro:arg name="use_gazebo" default="false"/>
   <xacro:if value="$(arg use_gazebo)">
-    <xacro:include filename="$(find caretta_description)/urdf/caretta.ros2_control.xacro"/>
+    <xacro:include filename="$(find caretta_description)/urdf/control/ros2_control.xacro"/>
     <xacro:caretta_ros2_control robot_name="caretta"/>
-    <xacro:include filename="$(find caretta_description)/urdf/caretta.sensors.gazebo.xacro"/>
-    <xacro:caretta_sensors_gazebo robot_name="caretta"/>
   </xacro:if>
 
 </robot>

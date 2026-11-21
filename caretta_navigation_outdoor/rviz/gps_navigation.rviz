@@ -1,5 +1,6 @@
 # RViz for outdoor GPS navigation (caretta_navigation_outdoor gps_navigation.launch.py):
-# ground = top-down image of the Gazebo world; real satellite tiles (Esri, internet) off by default;
+# ground = top-down image of the Gazebo world as local tiles (drawn behind everything);
+# real satellite tiles (Esri, internet) off by default;
 # no map; rolling costmaps, global plan, GPS positions (orange arrows), robot, LiDAR.
 # map frame = Gazebo world (x east, y north). Tools: 2D Goal Pose -> Nav2, Publish Point -> lat/lon
 # into the GpsGoal panel. Panels: Navigation 2, GpsGoal (type lat/lon, Go). GpsTargets: test X marks + lat/lon.
@@ -18,18 +19,22 @@ Panels:
 Visualization Manager:
   Class: ""
   Displays:
-    - Class: rviz_default_plugins/Marker
+    - Alpha: 1
+      Blocks: 3
+      Class: rviz_satellite/AerialMap
+      Draw Behind: true
       Enabled: true
       Name: GazeboGround
-      Namespaces:
-        {}
+      Object URI: file://@GROUND_TILES@/{z}/{x}/{y}.jpg
+      Timeout: 5
       Topic:
         Depth: 5
         Durability Policy: Volatile
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /outdoor_ground
+        Value: /gps/map_origin
       Value: true
+      Zoom: 21
     - Alpha: 1
       Blocks: 2
       Class: rviz_satellite/AerialMap

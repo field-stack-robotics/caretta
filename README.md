@@ -206,8 +206,8 @@ trees as in Gazebo. Real satellite tiles (`rviz_satellite`, Esri World Imagery, 
 
 Give a GPS goal in the RViz **GpsGoal** panel: type the latitude and longitude (heading optional) and press **Go**.
 With the **Publish Point** tool, a click on the ground fills in the latitude/longitude of that spot.
-Two test targets are drawn on the ground: **T1** (2.5 m) and **T2** (5 m) in front of the start, an X with its
-latitude/longitude below it; type those into the panel.
+Two test targets are drawn on the gravel path: **T1** (yellow, 10.6 m) and **T2** (red, 5 m) east of the start, an X
+with its latitude/longitude below it; type those into the panel.
 
 Or give a goal in RViz with **2D Goal Pose** (the map frame is the Gazebo world: x east, y north), or drive one lap
 of the gravel path with GPS waypoints (latitude, longitude), in a third terminal:

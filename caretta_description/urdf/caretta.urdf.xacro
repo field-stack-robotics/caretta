@@ -20,6 +20,10 @@
   <xacro:property name="wheel_radius" value="0.0345" />
   <xacro:property name="wheel_width" value="0.0248" />
   <xacro:property name="wheel_separation" value="0.2092" />
+  <!-- Wheel joint limits (TT gear motor on 2S): ASSUMED, measure the real motor
+       (no-load RPM -> rad/s, stall torque). Used by the joints and ros2_control. -->
+  <xacro:property name="max_wheel_speed" value="18.0" />  <!-- rad/s -->
+  <xacro:property name="wheel_effort" value="0.1" />       <!-- N*m -->
   <!-- rear caster ball centre is caster_x behind the axle (plate x -82 mm) -->
   <xacro:property name="caster_x" value="0.1270" />
   <xacro:property name="caster_radius" value="0.0060" />
@@ -162,6 +166,9 @@
         <parent link="${robot_name}_motor_1"/>
         <child link="${robot_name}_wheel_right"/>
         <axis xyz="0 1 0"/>
+        <limit effort="${wheel_effort}" velocity="${max_wheel_speed}"/>
+        <!-- small gearbox losses -->
+        <dynamics damping="0.001" friction="0.001"/>
     </joint>
 
     <!-- Joint from caretta_chassis to caretta_motor (right) -->
@@ -182,6 +189,9 @@
         <parent link="${robot_name}_motor_2"/>
         <child link="${robot_name}_wheel_left"/>
         <axis xyz="0 1 0"/>
+        <limit effort="${wheel_effort}" velocity="${max_wheel_speed}"/>
+        <!-- small gearbox losses -->
+        <dynamics damping="0.001" friction="0.001"/>
     </joint>
 
     <!-- Joint from caretta_chassis to caretta_motor_2 (left) -->

@@ -30,7 +30,11 @@ diff_drive_controller:
     use_stamped_vel: false
     cmd_vel_timeout: 0.5  # s, robot stops if no command arrives
 
-    # conservative limits for a small indoor robot
+    # conservative limits for a small indoor robot.
+    # They must fit the wheel speed limit (max_wheel_speed in caretta.urdf.xacro):
+    #   linear max + angular max * wheel_separation / 2  <  max_wheel_speed * wheel_radius
+    #   0.3 + 2.0 * 0.2092 / 2 = 0.509 m/s (14.8 rad/s)  <  18.0 * 0.0345 = 0.621 m/s  (~18 % margin)
+    # Change one of these values -> check this line again.
     linear.x.has_velocity_limits: true
     linear.x.max_velocity: 0.3       # m/s
     linear.x.min_velocity: -0.3

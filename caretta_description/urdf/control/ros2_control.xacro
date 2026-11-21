@@ -11,9 +11,10 @@
 
       <xacro:macro name="caretta_wheel_interface" params="joint">
         <joint name="${joint}">
+          <!-- wheel speed limit in rad/s, from max_wheel_speed in caretta.urdf.xacro -->
           <command_interface name="velocity">
-            <param name="min">-15.0</param>
-            <param name="max">15.0</param>
+            <param name="min">${-max_wheel_speed}</param>
+            <param name="max">${max_wheel_speed}</param>
           </command_interface>
           <state_interface name="position"/>
           <state_interface name="velocity"/>

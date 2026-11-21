@@ -99,7 +99,8 @@ caretta_ws/
 └── src/
     ├── caretta/              # the robot
     │   ├── caretta_description/   # model: URDF, meshes, sensors
-    │   └── caretta_control/       # controllers, twist_mux
+    │   ├── caretta_control/       # controllers, twist_mux
+    │   └── caretta_localization/  # EKF (robot_localization)
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -139,7 +140,8 @@ Sensors:
 - `/scan`: LiDAR
 - `/camera/image_raw`: camera
 - `/imu`: IMU (BNO055, 100 Hz)
-- `/diff_drive_controller/odom`: odometry
+- `/diff_drive_controller/odom`: wheel odometry
+- `/odometry/filtered`: EKF output, wheel odometry + IMU (also the TF `odom` -> `caretta_base_footprint`)
 
 Velocity commands (`twist_mux` picks one; the higher priority wins):
 

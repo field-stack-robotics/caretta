@@ -1,0 +1,33 @@
+# robot_localization EKF: wheel odometry + IMU -> odom -> caretta_base_footprint (local, smooth, drifts).
+# Order of every *_config list (15 values):
+#   [x, y, z,  roll, pitch, yaw,  vx, vy, vz,  vroll, vpitch, vyaw,  ax, ay, az]
+ekf_filter_node:
+  ros__parameters:
+    frequency: 50.0            # Hz, filter output (odom + TF)
+    sensor_timeout: 0.1        # s, no sensor data this long -> predict only (no correction)
+    two_d_mode: true           # flat floor: ignore z, roll, pitch
+    publish_tf: true           # EKF publishes odom -> base (diff_drive must NOT)
+
+    # frames (REP-105)
+    map_frame: map
+    odom_frame: odom
+    base_link_frame: caretta_base_footprint
+    world_frame: odom          # local EKF works in the odom frame
+
+    # wheel odometry: forward speed, sideways speed (always 0 on diff drive), turn rate
+    odom0: /diff_drive_controller/odom
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  true,  false,
+                   false, false, true,
+                   false, false, false]
+    odom0_queue_size: 10
+
+    # IMU (BNO055): turn rate only. No yaw (no magnetometer -> drifts), no acceleration (noisy)
+    imu0: /imu
+    imu0_config: [false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, true,
+                   false, false, false]
+    imu0_queue_size: 10

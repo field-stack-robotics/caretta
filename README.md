@@ -120,7 +120,7 @@ Run the simulation in Gazebo:
 ros2 launch caretta_gazebo gazebo.launch.py rviz:=true
 ```
 
-The default world is `caretta_house` (corridor, three rooms, furniture; for SLAM). For the small test room add `world:=caretta_test`.
+The default world is `caretta_house` (corridor, three rooms, furniture; for SLAM). For the outdoor field (GPS tests) add `world:=caretta_outdoor`, for the small test room `world:=caretta_test`.
 
 Drive it (in a second terminal):
 

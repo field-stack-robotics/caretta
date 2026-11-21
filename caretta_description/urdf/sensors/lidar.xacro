@@ -58,7 +58,8 @@
           <lidar>
             <scan>
               <horizontal>
-                <samples>270</samples>
+                <!-- ~450 points per turn at 10 Hz (0.8 deg), like the real N10: check the datasheet -->
+                <samples>450</samples>
                 <resolution>1</resolution>
                 <min_angle>-3.141593</min_angle>
                 <max_angle>3.141593</max_angle>
@@ -78,7 +79,7 @@
             <noise>
               <type>gaussian</type>
               <mean>0.0</mean>
-              <stddev>0.0</stddev>
+              <stddev>0.01</stddev>   <!-- m, real LiDARs are noisy: a perfect sim scan hides SLAM problems -->
             </noise>
           </lidar>
         </sensor>

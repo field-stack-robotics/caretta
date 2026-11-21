@@ -100,7 +100,8 @@ caretta_ws/
     ├── caretta/              # the robot
     │   ├── caretta_description/   # model: URDF, meshes, sensors
     │   ├── caretta_control/       # controllers, twist_mux
-    │   └── caretta_localization/  # EKF (robot_localization)
+    │   ├── caretta_localization/  # EKF (robot_localization)
+    │   └── caretta_navigation/    # SLAM (slam_toolbox), maps
     └── caretta_simulator/    # Gazebo world and launch
         └── caretta_gazebo/
 ```
@@ -135,6 +136,27 @@ ros2 topic pub --once /e_stop std_msgs/msg/Bool "data: true"
 ros2 topic pub --once /e_stop std_msgs/msg/Bool "data: false"
 ```
 
+### Build a map (SLAM)
+
+Start Gazebo without RViz (SLAM opens its own RViz with the map):
+
+```bash
+ros2 launch caretta_gazebo gazebo.launch.py
+```
+
+Start SLAM (slam_toolbox), in a second terminal:
+
+```bash
+ros2 launch caretta_navigation slam.launch.py use_sim_time:=true
+```
+
+Drive slowly through every room (teleop above, third terminal), then save the map while SLAM still runs:
+
+```bash
+ros2 run nav2_map_server map_saver_cli -f src/caretta/caretta_navigation/maps/caretta_house \
+  --ros-args -p use_sim_time:=true
+```
+
 ## Topics
 
 Sensors:
@@ -143,6 +165,7 @@ Sensors:
 - `/camera/image_raw`: camera
 - `/imu`: IMU (BNO055, 100 Hz)
 - `/diff_drive_controller/odom`: wheel odometry
+- `/map`: occupancy grid from SLAM (also the TF `map` -> `odom`)
 - `/odometry/filtered`: EKF output, wheel odometry + IMU (also the TF `odom` -> `caretta_base_footprint`)
 
 Velocity commands (`twist_mux` picks one; the higher priority wins):

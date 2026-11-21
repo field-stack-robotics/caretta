@@ -1,0 +1,6 @@
+<library path="caretta_rviz_plugins">
+  <class name="caretta_rviz_plugins/GpsGoal" type="caretta_rviz_plugins::GpsGoalPanel"
+         base_class_type="rviz_common::Panel">
+    <description>Type a latitude/longitude (and an optional heading) and send it as a Nav2 goal.</description>
+  </class>
+</library>

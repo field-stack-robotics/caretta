@@ -1,0 +1,48 @@
+<?xml version="1.0" ?>
+<!-- BNO055 IMU: link and imu sensor (topic /imu, 100 Hz).
+     Needs gz::sim::systems::Imu in the world. -->
+<!-- Usage: <xacro:imu robot_name="caretta" parent="caretta_base_link" xyz="..." sim="true|false"/>
+     sim:=true adds the Gazebo (Ignition Fortress) sensor. -->
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:macro name="imu" params="robot_name parent xyz rpy:='0 0 0' sim:=false">
+
+    <!-- Frame at the chip, x forward, z up (REP-103) -->
+    <link name="${robot_name}_imu_link"/>
+
+    <joint name="${robot_name}_imu_joint" type="fixed">
+        <origin xyz="${xyz}" rpy="${rpy}"/>
+        <parent link="${parent}"/>
+        <child link="${robot_name}_imu_link"/>
+    </joint>
+
+    <xacro:if value="${sim}">
+      <!-- BNO055 IMU. Noise from the datasheet at 100 Hz:
+           gyro 0.014 deg/s/sqrt(Hz) -> 0.0025 rad/s, accel 150 ug/sqrt(Hz) -> 0.015 m/s^2.
+           No magnetometer: the real chip runs in IMUPLUS mode (indoors, next to the motors). -->
+      <gazebo reference="${robot_name}_imu_link">
+        <sensor name="${robot_name}_bno055" type="imu">
+          <always_on>true</always_on>
+          <visualize>false</visualize>
+          <update_rate>100</update_rate>
+          <topic>imu</topic>
+          <ignition_frame_id>${robot_name}_imu_link</ignition_frame_id>
+          <imu>
+            <angular_velocity>
+              <x><noise type="gaussian"><mean>0.0</mean><stddev>0.0025</stddev></noise></x>
+              <y><noise type="gaussian"><mean>0.0</mean><stddev>0.0025</stddev></noise></y>
+              <z><noise type="gaussian"><mean>0.0</mean><stddev>0.0025</stddev></noise></z>
+            </angular_velocity>
+            <linear_acceleration>
+              <x><noise type="gaussian"><mean>0.0</mean><stddev>0.015</stddev></noise></x>
+              <y><noise type="gaussian"><mean>0.0</mean><stddev>0.015</stddev></noise></y>
+              <z><noise type="gaussian"><mean>0.0</mean><stddev>0.015</stddev></noise></z>
+            </linear_acceleration>
+          </imu>
+        </sensor>
+      </gazebo>
+    </xacro:if>
+
+  </xacro:macro>
+
+</robot>

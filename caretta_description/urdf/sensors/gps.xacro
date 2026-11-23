@@ -1,18 +1,11 @@
 <?xml version="1.0" ?>
-<!-- Dual-antenna RTK GPS (2 x u-blox ZED-F9P, moving base): position from the rear antenna,
-     heading from the line rear -> front (see caretta_navigation_outdoor, dual GPS heading node).
-     Antennas on a bar along x, above the LiDAR scan plane. Needs gz::sim::systems::NavSat
-     and <spherical_coordinates> in the world (caretta_outdoor.sdf).
-     Usage: <xacro:dual_gps robot_name="caretta" parent="caretta_base_link" sim="true|false"/>
-     noise: horizontal position noise in m (RTK ~0.01, plain GPS ~2.0); vertical is twice that.
-     Fortress applies the horizontal navsat noise to latitude/longitude in DEGREES, so it is
-     converted here (1 deg latitude = 111320 m; longitude error is cos(lat) smaller in metres). -->
+<!-- Dual RTK GPS (outdoor). Needs NavSat and spherical_coordinates in the world.
+     Fortress applies the horizontal noise in degrees. -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:macro name="dual_gps" params="robot_name parent baseline:=0.5 center_x:=-0.045 height:=0.20
                                        noise:=0.01 sim:=false">
 
-    <!-- visual-only bar holding both antennas -->
     <link name="${robot_name}_gps_bar">
       <visual>
         <geometry><box size="${baseline + 0.06} 0.02 0.01"/></geometry>
@@ -25,7 +18,6 @@
       <child link="${robot_name}_gps_bar"/>
     </joint>
 
-    <!-- one antenna: link at the antenna phase centre (top of the puck), navsat sensor -->
     <xacro:macro name="gps_antenna" params="name x">
       <link name="${robot_name}_gps_${name}_link">
         <visual>

@@ -1,5 +1,4 @@
 <?xml version="1.0" ?>
-<!-- ros2_control for Gazebo (Ignition Fortress): two velocity-controlled wheels -->
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
 
   <xacro:macro name="caretta_ros2_control" params="robot_name controllers_file">
@@ -11,7 +10,6 @@
 
       <xacro:macro name="caretta_wheel_interface" params="joint">
         <joint name="${joint}">
-          <!-- wheel speed limit in rad/s, from max_wheel_speed in caretta.urdf.xacro -->
           <command_interface name="velocity">
             <param name="min">${-max_wheel_speed}</param>
             <param name="max">${max_wheel_speed}</param>
@@ -25,8 +23,6 @@
       <xacro:caretta_wheel_interface joint="${robot_name}_right_wheel"/>
     </ros2_control>
 
-    <!-- Starts the controller_manager inside Gazebo with our controller config
-         (caretta_control/config/caretta_controllers.yaml, path given by the launch file) -->
     <gazebo>
       <plugin filename="libgz_ros2_control-system.so" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
         <parameters>${controllers_file}</parameters>

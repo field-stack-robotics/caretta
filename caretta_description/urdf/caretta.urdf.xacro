@@ -1,23 +1,13 @@
 <?xml version="1.0" ?>
-<!-- FS-1 Caretta Rev G (Field Stack Robotics)                                                       -->
-<!-- Rev G: wheel axle 45 mm in front of the plate centre, motors turned 180 deg (body points back),   -->
-<!-- single rear ball caster -> 3 ground contacts (2 wheels + caster), no rocking.                     -->
-<!-- All meshes are in metres and in their own link frame, so every visual origin is zero.          -->
-<!-- base_link: rotation centre (wheel axle midpoint) on the ground, x forward, y left, z up.        -->
-<!-- Plate coordinates (drawings) -> base_link: x_urdf = (x_plate - 45 mm).                          -->
+<!-- FS-1 Caretta- base_link: axle midpoint on the ground, x forward, z up. -->
 <robot name="caretta" xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <!-- Gazebo + ros2_control only when asked: xacro caretta.urdf.xacro use_gazebo:=true -->
   <xacro:arg name="use_gazebo" default="false"/>
-  <!-- controller config for the Gazebo ros2_control plugin (needed with use_gazebo:=true),
-       e.g. controllers_file:=$(ros2 pkg prefix caretta_control)/share/caretta_control/config/caretta_controllers.yaml
-       Passed in by the launch file, so this package does not depend on caretta_control. -->
+  <!-- set by the launch file -->
   <xacro:arg name="controllers_file" default=""/>
-  <!-- dual-antenna RTK GPS on a bar (outdoor only): xacro caretta.urdf.xacro gps:=true -->
   <xacro:arg name="gps" default="false"/>
 
   <xacro:include filename="$(find caretta_description)/urdf/caretta_materials.xacro"/>
-  <!-- one file per sensor: its link, frames and Gazebo sensor -->
   <xacro:include filename="$(find caretta_description)/urdf/sensors/lidar.xacro"/>
   <xacro:include filename="$(find caretta_description)/urdf/sensors/camera.xacro"/>
   <xacro:include filename="$(find caretta_description)/urdf/sensors/imu.xacro"/>
@@ -27,20 +17,17 @@
   <xacro:property name="wheel_radius" value="0.0345" />
   <xacro:property name="wheel_width" value="0.0248" />
   <xacro:property name="wheel_separation" value="0.2092" />
-  <!-- Wheel joint limits (TT gear motor on 2S): ASSUMED, measure the real motor
-       (no-load RPM -> rad/s, stall torque). Used by the joints and ros2_control. -->
+  <!-- ASSUMED: measure the real motor -->
   <xacro:property name="max_wheel_speed" value="18.0" />  <!-- rad/s -->
   <xacro:property name="wheel_effort" value="0.1" />       <!-- N*m -->
-  <!-- rear caster ball centre is caster_x behind the axle (plate x -82 mm) -->
   <xacro:property name="caster_x" value="0.1270" />
   <xacro:property name="caster_radius" value="0.0060" />
-  <!-- LiDAR scan plane height above the lidar base: middle of the rotating optical head
-       (mesh: base z 0..22 mm, head z 22..35.8 mm). -->
+  <!-- middle of the lidar head -->
   <xacro:property name="lidar_scan_height" value="0.029" />
 
   <xacro:macro name="caretta_body" params="robot_name">
 
-    <!-- Root link: on the ground under the rotation centre, no inertia (KDL needs this) -->
+    <!-- no inertia (KDL) -->
     <link name="${robot_name}_base_footprint"/>
 
     <joint name="${robot_name}_base_joint" type="fixed">
@@ -49,17 +36,14 @@
         <child link="${robot_name}_base_link"/>
     </joint>
 
-    <!-- Link base_link (3 plates, standoffs, camera pod, e-stop) -->
     <link name="${robot_name}_base_link">
         <inertial>
-            <!-- TODO: estimate, weigh the real robot.
-                 PETG plates (~55 % effective density) + Pi + boards + 2S battery -->
+            <!-- TODO: weigh the real robot -->
             <origin xyz="-0.045 0 0.065" rpy="0 0 0"/>
             <mass value="0.65"/>
             <inertia ixx="0.002535" ixy="0" ixz="0" iyy="0.002947" iyz="0" izz="0.003922"/>
         </inertial>
-        <!-- one link per colour (RViz/urdfdom colour only one visual per link reliably);
-             all colour meshes are in the base_link frame, see caretta_part below -->
+        <!-- one link per colour: urdfdom colours one visual per link -->
         <visual name="base_link_black">
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
@@ -67,15 +51,13 @@
             </geometry>
             <xacro:fs1_material name="fs1_black"/>
         </visual>
-        <!-- simple box collisions instead of the 41k-triangle mesh (faster, stable contacts) -->
-        <!-- main body: plates + standoffs, x -0.145..0.0628, y +-0.09, z 0.0202..0.1172 -->
+        <!-- boxes instead of the mesh -->
         <collision>
             <origin xyz="-0.0411 0 0.0687" rpy="0 0 0"/>
             <geometry>
                 <box size="0.2078 0.180 0.0970"/>
             </geometry>
         </collision>
-        <!-- e-stop on the top plate (plate x -58, y -48), z 0.1172..0.1362 -->
         <collision>
             <origin xyz="-0.103 -0.048 0.1267" rpy="0 0 0"/>
             <geometry>
@@ -84,7 +66,6 @@
         </collision>
     </link>
 
-    <!-- Coloured visual-only part: own link, fixed to its parent at the parent origin -->
     <xacro:macro name="caretta_part" params="name mesh material parent">
       <link name="${robot_name}_${name}">
         <visual>
@@ -103,7 +84,6 @@
     </xacro:macro>
 
     <xacro:caretta_part name="standoffs"     mesh="base_link_brass" material="fs1_brass"        parent="${robot_name}_base_link"/>
-    <!-- teal: edge stripes + logo icons + text, amber: lighthouse lamp and beams (0.6 mm inlays) -->
     <xacro:caretta_part name="teal_inlays"   mesh="base_link_teal"  material="fs1_teal"         parent="${robot_name}_base_link"/>
     <xacro:caretta_part name="amber_inlays"  mesh="base_link_amber" material="fs1_amber"        parent="${robot_name}_base_link"/>
     <xacro:caretta_part name="estop_housing" mesh="estop_housing"   material="fs1_estop_yellow" parent="${robot_name}_base_link"/>
@@ -112,7 +92,6 @@
     <xacro:macro name="caretta_motor_link" params="name">
       <link name="${robot_name}_${name}">
         <inertial>
-            <!-- Rev G: motor body points backwards (-x) from the axle -->
             <origin xyz="-0.024 0 0" rpy="0 0 0"/>
             <mass value="0.0339689"/>
             <inertia ixx="2.46e-06" ixy="0" ixz="0" iyy="1.957e-05" iyz="0" izz="1.916e-05"/>
@@ -140,7 +119,6 @@
             <mass value="0.03"/>
             <inertia ixx="1.046e-05" ixy="0" ixz="0" iyy="1.785e-05" iyz="0" izz="1.046e-05"/>
         </inertial>
-        <!-- wheel rim (D52 x 22.8 mm) -->
         <visual>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
@@ -148,9 +126,7 @@
             </geometry>
             <xacro:fs1_material name="fs1_rim_yellow"/>
         </visual>
-        <!-- sphere collision: one contact point in the middle of the tyre, so the effective
-             track is exactly wheel_separation. A wide cylinder touched the ground at its inner
-             edges in Gazebo and the robot turned 13 % faster than odometry (measured with the IMU). -->
+        <!-- sphere: one contact at the tyre centre (a cylinder turned 13 % too fast) -->
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>
@@ -158,79 +134,61 @@
             </geometry>
         </collision>
       </link>
-      <!-- tyre as its own link so it keeps its own colour -->
       <xacro:caretta_part name="tire_${name.split('_')[1]}" mesh="wheel_tire" material="fs1_tire" parent="${robot_name}_${name}"/>
     </xacro:macro>
 
-    <!-- Link caretta_motor (right) -->
     <xacro:caretta_motor_link name="motor_1"/>
-    <!-- Link wheel_right -->
     <xacro:caretta_wheel_link name="wheel_right"/>
 
-    <!-- Joint from caretta_motor to wheel (right) -->
     <joint name="${robot_name}_right_wheel" type="continuous">
         <origin xyz="0 -0.0271 0" rpy="0 0 0"/>
         <parent link="${robot_name}_motor_1"/>
         <child link="${robot_name}_wheel_right"/>
         <axis xyz="0 1 0"/>
         <limit effort="${wheel_effort}" velocity="${max_wheel_speed}"/>
-        <!-- small gearbox losses -->
         <dynamics damping="0.001" friction="0.001"/>
     </joint>
 
-    <!-- Joint from caretta_chassis to caretta_motor (right) -->
     <joint name="${robot_name}_right_motor" type="fixed">
         <origin xyz="0 -0.0775 0.0345" rpy="0 0 0"/>
         <parent link="${robot_name}_base_link"/>
         <child link="${robot_name}_motor_1"/>
     </joint>
 
-    <!-- Link caretta_motor_2 (left) -->
     <xacro:caretta_motor_link name="motor_2"/>
-    <!-- Link wheel_left -->
     <xacro:caretta_wheel_link name="wheel_left"/>
 
-    <!-- Joint from caretta_motor_2 to wheel (left) -->
     <joint name="${robot_name}_left_wheel" type="continuous">
         <origin xyz="0 0.0271 0" rpy="0 0 0"/>
         <parent link="${robot_name}_motor_2"/>
         <child link="${robot_name}_wheel_left"/>
         <axis xyz="0 1 0"/>
         <limit effort="${wheel_effort}" velocity="${max_wheel_speed}"/>
-        <!-- small gearbox losses -->
         <dynamics damping="0.001" friction="0.001"/>
     </joint>
 
-    <!-- Joint from caretta_chassis to caretta_motor_2 (left) -->
     <joint name="${robot_name}_left_motor" type="fixed">
         <origin xyz="0 0.0775 0.0345" rpy="0 0 0"/>
         <parent link="${robot_name}_base_link"/>
         <child link="${robot_name}_motor_2"/>
     </joint>
 
-    <!-- LiDAR on the top plate, on the rotation axis. Scan plane = 0.1172 + 0.029 = 0.146 m,
-         10 mm above the e-stop top (no self-hits). Check scan_height against the N10 datasheet. -->
+    <!-- scan plane 0.146 m, above the e-stop -->
     <xacro:lidar robot_name="${robot_name}" parent="${robot_name}_base_link"
                  xyz="0 0 0.1172" scan_height="${lidar_scan_height}" sim="$(arg use_gazebo)"/>
 
-    <!-- BNO055 IMU on the middle plate, right above the rotation centre (axle midpoint):
-         no false centripetal/tangential acceleration when turning.
-         Middle plate top is z 0.0712; chip about 4 mm above it. -->
+    <!-- above the rotation centre: no false centripetal acceleration -->
     <xacro:imu robot_name="${robot_name}" parent="${robot_name}_base_link"
                xyz="0 0 0.075" sim="$(arg use_gazebo)"/>
 
-    <!-- Dual-antenna RTK GPS, outdoor only (gps:=true): antennas 0.5 m apart along x,
-         0.2 m high (above the LiDAR scan plane), centred on the plate centre -->
     <xacro:if value="$(arg gps)">
       <xacro:dual_gps robot_name="${robot_name}" parent="${robot_name}_base_link"
                       sim="$(arg use_gazebo)"/>
     </xacro:if>
 
-    <!-- Raspberry Pi camera in the camera pod -->
     <xacro:camera robot_name="${robot_name}" parent="${robot_name}_base_link"
                   xyz="0.0590 0 0.0982" sim="$(arg use_gazebo)"/>
 
-    <!-- Rear ball caster (Pololu 1/2"), frame at the ball centre -->
     <link name="${robot_name}_ball_caster">
         <inertial>
             <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -244,7 +202,6 @@
             </geometry>
             <xacro:fs1_material name="fs1_caster"/>
         </visual>
-        <!-- sphere collision for the ball only: low-friction point contact -->
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0"/>
             <geometry>

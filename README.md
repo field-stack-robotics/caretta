@@ -1,5 +1,7 @@
 # Caretta
 
+https://github.com/user-attachments/assets/5369956b-e824-4f32-9cb9-5ca2b4d7fa6d
+
 ```bash
 git clone -b humble https://github.com/field-stack-robotics/caretta.git
 ```
@@ -8,11 +10,11 @@ FS-1 Caretta differential-drive robot by Field Stack Robotics.
 
 Tested on Ubuntu 22.04, ROS 2 Humble, Ignition Gazebo Fortress.
 
-## Setup
+## 1. Setup
 
 Install [ROS 2 Humble](https://docs.ros.org/en/humble/Installation.html) first.
 
-### 1. Install the tools
+### 1.1 Install the tools
 
 Install rosdep (installs package dependencies), colcon (builds the workspace) and git (downloads the repos):
 
@@ -26,7 +28,7 @@ Install the keyboard teleop, used to drive the robot:
 sudo apt install ros-humble-teleop-twist-keyboard
 ```
 
-### 2. Create the workspace
+### 1.2 Create the workspace
 
 Create the workspace folder. All packages go inside `src/`:
 
@@ -40,7 +42,7 @@ Go into `src/`:
 cd ~/caretta_ws/src
 ```
 
-### 3. Clone the repos
+### 1.3 Clone the repos
 
 Download the robot (model and control):
 
@@ -54,7 +56,7 @@ Download the Gazebo simulation (skip it if you don't use Gazebo):
 git clone -b humble https://github.com/field-stack-robotics/caretta_simulator.git
 ```
 
-### 4. Install the dependencies
+### 1.4 Install the dependencies
 
 Go back to the workspace root:
 
@@ -80,7 +82,7 @@ Install every package the repos need (Gazebo, ros2_control, ...):
 rosdep install --from-paths src --ignore-src -y
 ```
 
-### 5. Build
+### 1.5 Build
 
 Build all packages in `src/`. This creates the `build/`, `install/` and `log/` folders:
 
@@ -96,7 +98,7 @@ source install/setup.bash
 
 Run `source ~/caretta_ws/install/setup.bash` in every new terminal.
 
-## Workspace layout
+## 2. Workspace layout
 
 ```
 caretta_ws/
@@ -112,7 +114,9 @@ caretta_ws/
         └── caretta_gazebo/
 ```
 
-## Run
+## 3. Run
+
+### 3.1 View the Model
 
 View the model in RViz:
 
@@ -120,34 +124,61 @@ View the model in RViz:
 ros2 launch caretta_description display.launch.py
 ```
 
+### 3.2 Start Simulation
+
 Run the simulation in Gazebo:
 
 ```bash
 ros2 launch caretta_gazebo gazebo.launch.py rviz:=true
 ```
 
-The default world is `caretta_house` (corridor, three rooms, furniture; for SLAM). For a bigger SLAM challenge use `world:=caretta_office` (30 x 20 m building: long plain corridor, four identical offices, warehouse with a column grid, big loops). For the outdoor field (GPS tests) add `world:=caretta_outdoor`, for the small test room `world:=caretta_test`.
+The default world is empty. Pick another one with `world:=<name>`:
 
-Drive it (in a second terminal):
+- `caretta_house`: corridor and three rooms (SLAM)
+- `caretta_office`: 30 x 20 m building (harder SLAM)
+- `caretta_outdoor`: open field (GPS)
+
+<table>
+  <tr>
+    <td align="center"><img src="docs/media/world_house.jpg" width="270" alt="caretta_house world"><br><code>caretta_house</code></td>
+    <td align="center"><img src="docs/media/world_office.jpg" width="270" alt="caretta_office world"><br><code>caretta_office</code></td>
+    <td align="center"><img src="docs/media/world_outdoor.jpg" width="270" alt="caretta_outdoor world"><br><code>caretta_outdoor</code></td>
+  </tr>
+</table>
+
+```bash
+ros2 launch caretta_gazebo gazebo.launch.py rviz:=true world:=caretta_house
+```
+
+Open a new terminal and run the command below:
 
 ```bash
 ros2 run teleop_twist_keyboard teleop_twist_keyboard \
   --ros-args -r cmd_vel:=cmd_vel_teleop
 ```
 
-Emergency stop (stops every velocity command), and release it:
+### 3.3 Emergency Stop
+
+`true` stops the robot: every velocity command (teleop and Nav2) is blocked until you release it:
 
 ```bash
 ros2 topic pub --once /e_stop std_msgs/msg/Bool "data: true"
+```
+
+`false` releases it, the robot accepts commands again:
+
+```bash
 ros2 topic pub --once /e_stop std_msgs/msg/Bool "data: false"
 ```
 
-### Build a map (SLAM)
+## 4. SLAM: Build a Map
+
+https://github.com/user-attachments/assets/785c92c8-7106-4adf-b804-7b17f542cdbf
 
 Start Gazebo without RViz (SLAM opens its own RViz with the map):
 
 ```bash
-ros2 launch caretta_gazebo gazebo.launch.py
+ros2 launch caretta_gazebo gazebo.launch.py world:=caretta_house
 ```
 
 Start SLAM (slam_toolbox), in a second terminal:
@@ -163,12 +194,12 @@ ros2 run nav2_map_server map_saver_cli -f src/caretta/caretta_navigation/maps/ca
   --ros-args -p use_sim_time:=true
 ```
 
-### Localize on the saved map (AMCL)
+## 5. Localization
 
-Do not run it together with SLAM: both publish the TF `map` -> `odom`.
+Localize on the saved map with AMCL. Do not run it together with SLAM: both publish the TF `map` -> `odom`.
 
 ```bash
-ros2 launch caretta_gazebo gazebo.launch.py
+ros2 launch caretta_gazebo gazebo.launch.py world:=caretta_house
 ros2 launch caretta_navigation amcl.launch.py use_sim_time:=true
 ```
 
@@ -179,48 +210,38 @@ The robot starts at the map origin, so AMCL knows where it is. If it gets lost, 
 ros2 service call /reinitialize_global_localization std_srvs/srv/Empty
 ```
 
-### Navigate on its own (Nav2)
+## 6. Indoor Navigation
+
+https://github.com/user-attachments/assets/4680e2b5-b064-4d4f-bdd8-f7bec1c210fa
 
 Starts AMCL, Nav2 and RViz together (do not start `amcl.launch.py` or SLAM as well):
 
 ```bash
-ros2 launch caretta_gazebo gazebo.launch.py
+ros2 launch caretta_gazebo gazebo.launch.py world:=caretta_house
 ros2 launch caretta_navigation navigation.launch.py use_sim_time:=true
 ```
 
 Give a goal in RViz with **2D Goal Pose**. The keyboard teleop always wins over Nav2, and `/e_stop` stops both.
 
-### Outdoors with GPS (dual-antenna RTK, Nav2 without a map)
+## 7. Outdoor Navigation
 
-Start the outdoor field with the GPS antennas on the robot:
+> **Work in progress.** GPS navigation is still being developed and may change.
+
+Nav2 without a map, with dual-antenna RTK GPS. Start the outdoor field:
 
 ```bash
 ros2 launch caretta_gazebo gazebo.launch.py world:=caretta_outdoor gps:=true
 ```
 
-Start GPS localization, Nav2 and RViz, in a second terminal:
+Open a new terminal and start GPS navigation (Nav2 and RViz):
 
 ```bash
 ros2 launch caretta_navigation_outdoor gps_navigation.launch.py use_sim_time:=true
 ```
 
-In RViz the ground is a top-down image of the Gazebo world, so the robot drives over the same grass, path and
-trees as in Gazebo. Real satellite tiles (`rviz_satellite`, Esri World Imagery, needs internet) are in the
-**Satellite** display, off by default; they show the real place at the map origin, not the Gazebo world.
+Give a goal in the RViz **GpsGoal** panel (latitude, longitude) or with **2D Goal Pose**.
 
-Give a GPS goal in the RViz **GpsGoal** panel: type the latitude and longitude (heading optional) and press **Go**.
-With the **Publish Point** tool, a click on the ground fills in the latitude/longitude of that spot.
-Two test targets are drawn on the gravel path: **T1** (yellow, 10.6 m) and **T2** (red, 5 m) east of the start, an X
-with its latitude/longitude below it; type those into the panel.
-
-Or give a goal in RViz with **2D Goal Pose** (the map frame is the Gazebo world: x east, y north), or drive one lap
-of the gravel path with GPS waypoints (latitude, longitude), in a third terminal:
-
-```bash
-ros2 run caretta_navigation_outdoor gps_waypoints --ros-args -p use_sim_time:=true
-```
-
-## Topics
+## 8. Topics
 
 Sensors:
 
@@ -240,6 +261,6 @@ Velocity commands (`twist_mux` picks one; the higher priority wins):
 - `/cmd_vel`: autonomous navigation (Nav2), priority 10
 - `/e_stop`: `std_msgs/Bool`, `true` stops the robot
 
-## License
+## 9. License
 
 Apache-2.0

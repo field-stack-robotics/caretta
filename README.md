@@ -1,5 +1,9 @@
 # Caretta
 
+```bash
+git clone -b humble https://github.com/field-stack-robotics/caretta.git
+```
+
 FS-1 Caretta differential-drive robot by Field Stack Robotics.
 
 Tested on Ubuntu 22.04, ROS 2 Humble, Ignition Gazebo Fortress.

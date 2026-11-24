@@ -18,10 +18,6 @@ Caretta is our first robot: a small, open source indoor robot that runs ROS 2.
 Install Caretta on your computer, then drive, map and navigate in Gazebo, step by step.
 The same guide is on our website: [Try Caretta](https://fieldstackrobotics.com/try.html).
 
-```bash
-git clone -b humble https://github.com/field-stack-robotics/caretta.git
-```
-
 **Requirements:**
 
 - Ubuntu 22.04
